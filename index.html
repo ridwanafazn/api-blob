@@ -54,23 +54,33 @@
 
     <!-- Main Content: Forms & Actions (Update) -->
     <div class="p-6 md:p-8 flex-1">
-      <div class="mb-6">
-        <h2 class="text-xl font-bold tracking-tight">Pengaturan API Lokal</h2>
-        <p class="text-sm text-muted-foreground">Hubungkan UI ini ke API Node.js di laptop kamu.</p>
+      
+      <!-- Shared Area: Base URL API -->
+      <div class="space-y-1.5 mb-6">
+        <label class="text-sm font-medium leading-none">Base URL API</label>
+        <input type="text" id="apiUrl" value="http://localhost:3000" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="http://192.168.1.5:3000">
       </div>
 
-      <!-- Config Form -->
-      <div class="space-y-4 mb-8">
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Base URL API</label>
-          <input type="text" id="apiUrl" value="http://localhost:3000" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="http://192.168.1.5:3000">
-        </div>
-        
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium leading-none">ID User Database (Neon)</label>
-          <input type="number" id="userId" value="1" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-        </div>
+      <!-- Tab Navigation -->
+      <div class="flex border-b border-border mb-6 space-x-4">
+        <button id="btnTabPfp" onclick="switchTab('pfp')" class="pb-2 text-sm font-semibold border-b-2 border-primary text-foreground">Simulator PFP</button>
+        <button id="btnTabAdd" onclick="switchTab('add')" class="pb-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground">Tambah User</button>
       </div>
+
+      <!-- Tab Content: Simulator PFP -->
+      <div id="tabPfp" class="block">
+        <div class="mb-6">
+          <h2 class="text-xl font-bold tracking-tight">Pengaturan User</h2>
+          <p class="text-sm text-muted-foreground">Pilih user ID untuk melihat atau mengubah profile picture.</p>
+        </div>
+
+        <!-- Config Form (User ID only now) -->
+        <div class="space-y-4 mb-8">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium leading-none">ID User Database (Neon)</label>
+            <input type="number" id="userId" value="1" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          </div>
+        </div>
 
       <!-- Divider -->
       <div class="relative mb-6">
@@ -98,6 +108,39 @@
           Load Data by ID User
         </button>
       </div>
+      </div> <!-- End of tabPfp -->
+
+      <!-- Tab Content: Tambah User -->
+      <div id="tabAddUser" class="hidden">
+        <div class="mb-6">
+          <h2 class="text-xl font-bold tracking-tight">Tambah User Baru</h2>
+          <p class="text-sm text-muted-foreground">Buat data user baru ke dalam database Neon.</p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="space-y-1.5">
+            <label class="text-sm font-medium leading-none">Username</label>
+            <input type="text" id="newUsername" placeholder="contoh: ridwan" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          </div>
+          
+          <button onclick="createNewUser()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full shadow-sm">
+            ➕ Tambah User
+          </button>
+        </div>
+
+        <!-- Response Panel (Hidden by default) -->
+        <div id="createUserResult" class="hidden mt-6 p-4 bg-secondary rounded-lg border border-border">
+          <p class="text-sm font-semibold text-emerald-600 mb-2">✅ User berhasil dibuat!</p>
+          <div class="space-y-1 mb-4">
+            <p class="font-mono text-sm">ID: <span id="resUserId" class="font-bold"></span></p>
+            <p class="font-mono text-sm">Username: <span id="resUserName" class="font-bold"></span></p>
+          </div>
+          <button onclick="useNewUserId()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full shadow-sm">
+            Gunakan ID ini di Simulator PFP
+          </button>
+        </div>
+      </div> <!-- End of tabAddUser -->
+
     </div>
   </div>
 
@@ -124,6 +167,31 @@
   <!-- Javascript Logic -->
   <script>
     // --- UI Helpers ---
+    function switchTab(tab) {
+      const tabPfp = document.getElementById('tabPfp');
+      const tabAdd = document.getElementById('tabAddUser');
+      const btnPfp = document.getElementById('btnTabPfp');
+      const btnAdd = document.getElementById('btnTabAdd');
+
+      if (tab === 'pfp') {
+        tabPfp.classList.remove('hidden');
+        tabPfp.classList.add('block');
+        tabAdd.classList.remove('block');
+        tabAdd.classList.add('hidden');
+        
+        btnPfp.className = "pb-2 text-sm font-semibold border-b-2 border-primary text-foreground";
+        btnAdd.className = "pb-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground";
+      } else {
+        tabAdd.classList.remove('hidden');
+        tabAdd.classList.add('block');
+        tabPfp.classList.remove('block');
+        tabPfp.classList.add('hidden');
+        
+        btnAdd.className = "pb-2 text-sm font-semibold border-b-2 border-primary text-foreground";
+        btnPfp.className = "pb-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground";
+      }
+    }
+
     function logMessage(msg, type="info") {
       const logEl = document.getElementById('logContent');
       const time = new Date().toLocaleTimeString();
@@ -197,6 +265,60 @@
       } catch (err) {
         logMessage(`[DB ERROR] ${err.message}`, "error");
         alert("Gagal konek ke API Backend kamu. Cek terminal node.js mu!");
+      }
+    }
+
+    // --- Action: Buat User Baru ---
+    async function createNewUser() {
+      const apiUrl = getBaseApiUrl();
+      const username = document.getElementById('newUsername').value.trim();
+      
+      if (!apiUrl) return alert("Set Base URL API dulu!");
+      if (!username) return alert("Masukkan username!");
+      
+      openTerminal();
+      logMessage(`\n=== MEMBUAT USER BARU ===`);
+      logMessage(`[API REQUEST] POST ${apiUrl}/api/users`, "warn");
+      
+      try {
+        const response = await fetch(`${apiUrl}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        const result = await response.json();
+        
+        if (!response.ok) throw new Error(result.message || 'Error dari Backend');
+        
+        logMessage(`[API RESPONSE] 201 Created - User Berhasil Dibuat!`);
+        logMessage(`[DB RECORD] ${JSON.stringify(result.data || result)}`);
+        
+        // Show result panel
+        const userData = result.data || result;
+        const newId = userData.id;
+        const newName = userData.username;
+        
+        document.getElementById('resUserId').innerText = newId;
+        document.getElementById('resUserName').innerText = newName;
+        document.getElementById('createUserResult').classList.remove('hidden');
+        
+        // Save the ID in a data attribute on the button for easy access
+        document.getElementById('createUserResult').dataset.newId = newId;
+        
+      } catch (err) {
+        logMessage(`[ERROR] ${err.message}`, "error");
+        alert("Gagal membuat user. Cek API Backend kamu!");
+      }
+    }
+
+    function useNewUserId() {
+      const newId = document.getElementById('createUserResult').dataset.newId;
+      if (newId) {
+        document.getElementById('userId').value = newId;
+        switchTab('pfp');
+        // Clear result
+        document.getElementById('createUserResult').classList.add('hidden');
+        document.getElementById('newUsername').value = "";
       }
     }
 
