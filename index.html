@@ -35,7 +35,7 @@
     }
   </script>
 </head>
-<body class="bg-gray-50 text-foreground min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 text-foreground min-h-screen flex items-center justify-center p-4" style="zoom: 1.1;">
 
   <!-- Main Container Card (Shadcn Card Style) -->
   <div class="bg-background w-full max-w-2xl rounded-xl border border-border shadow-sm overflow-hidden flex flex-col md:flex-row">
@@ -90,7 +90,12 @@
 
         <!-- Opsi 2: Generate Avatar -->
         <button onclick="useRandomAvatar()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
-          🎲 Generate Avatar Acak
+          Generate Avatar Acak
+        </button>
+
+        <!-- Opsi 3: Load PFP dari Database -->
+        <button onclick="loadPfpFromDb()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
+          Load Data by ID User
         </button>
       </div>
     </div>
@@ -98,7 +103,7 @@
 
   <!-- Terminal Log Area (Fixed at bottom on desktop, flows naturally on mobile) -->
   <div class="fixed bottom-0 left-0 right-0 p-4 pointer-events-none z-50 flex justify-center">
-    <div id="terminalContainer" class="w-full max-w-2xl bg-[#0d1117] border border-gray-700 rounded-lg shadow-2xl overflow-hidden pointer-events-auto transition-transform duration-300 transform translate-y-[calc(100%-2.5rem)] hover:translate-y-0">
+    <div id="terminalContainer" class="w-full max-w-2xl bg-[#0d1117] border border-gray-700 rounded-lg shadow-2xl overflow-hidden pointer-events-auto transition-transform duration-300 transform translate-y-[calc(100%-2.5rem)]">
       
       <!-- Terminal Header -->
       <div class="bg-[#161b22] px-4 py-2 border-b border-gray-700 flex justify-between items-center cursor-pointer" onclick="toggleTerminal()">
@@ -107,8 +112,8 @@
           <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
           <div class="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
-        <span class="text-xs text-gray-400 font-mono">Network Inspector (Klik untuk Buka/Tutup)</span>
-        <div class="w-4"></div>
+        <span class="text-xs text-gray-400 font-mono">Network Inspector</span>
+        <svg id="terminalChevron" class="w-4 h-4 text-gray-400 transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
       </div>
       
       <!-- Terminal Body -->
@@ -132,11 +137,22 @@
 
     function toggleTerminal() {
       const terminal = document.getElementById('terminalContainer');
-      if (terminal.classList.contains('translate-y-[calc(100%-2.5rem)]')) {
+      const chevron = document.getElementById('terminalChevron');
+      const isCollapsed = terminal.classList.contains('translate-y-[calc(100%-2.5rem)]');
+      if (isCollapsed) {
         terminal.classList.remove('translate-y-[calc(100%-2.5rem)]');
+        chevron.classList.remove('rotate-180');
       } else {
         terminal.classList.add('translate-y-[calc(100%-2.5rem)]');
+        chevron.classList.add('rotate-180');
       }
+    }
+
+    function openTerminal() {
+      const terminal = document.getElementById('terminalContainer');
+      const chevron = document.getElementById('terminalChevron');
+      terminal.classList.remove('translate-y-[calc(100%-2.5rem)]');
+      chevron.classList.remove('rotate-180');
     }
 
     function getBaseApiUrl() {
@@ -184,12 +200,52 @@
       }
     }
 
+    // --- Action 0: Load PFP dari Database ---
+    async function loadPfpFromDb() {
+      const apiUrl = getBaseApiUrl();
+      const userId = getUserId();
+
+      if (!apiUrl || !userId) return alert("Isi API URL dan User ID!");
+
+      // Buka terminal otomatis
+      openTerminal();
+
+      logMessage(`\n=== MEMUAT PFP DARI DATABASE ===`);
+      logMessage(`[API REQUEST] GET ${apiUrl}/api/users/${userId}/pfp`, "warn");
+
+      try {
+        const response = await fetch(`${apiUrl}/api/users/${userId}/pfp`);
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || 'Error dari Backend');
+
+        logMessage(`[API RESPONSE] 200 OK - Data PFP Ditemukan!`);
+        logMessage(`[DB RECORD] ${JSON.stringify(result.data)}`);
+
+        // Update UI dengan data dari database
+        const pfpUrl = result.data.pfp_url;
+        const username = result.data.username;
+
+        if (pfpUrl) {
+          updateProfileUI(pfpUrl, username || "User");
+          logMessage(`PFP berhasil dimuat dari database.`);
+        } else {
+          logMessage(`User ditemukan tapi belum punya PFP.`, "warn");
+          updateProfileUI("https://api.dicebear.com/7.x/bottts/svg?seed=default", username || "User");
+        }
+
+      } catch (err) {
+        logMessage(`[ERROR] ${err.message}`, "error");
+        alert("Gagal memuat PFP. Cek API Backend kamu!");
+      }
+    }
+
     // --- Action 1: Gacha Avatar (Direct Update) ---
     async function useRandomAvatar() {
       if(!getBaseApiUrl() || !getUserId()) return alert("Isi API URL dan User ID!");
       
       // Buka terminal otomatis
-      document.getElementById('terminalContainer').classList.remove('translate-y-[calc(100%-2.5rem)]');
+      openTerminal();
 
       const seed = Math.random().toString(36).substring(7);
       const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
@@ -210,7 +266,7 @@
       if (!apiUrl || !userId) return alert("Isi API URL dan User ID!");
 
       // Buka terminal otomatis
-      document.getElementById('terminalContainer').classList.remove('translate-y-[calc(100%-2.5rem)]');
+      openTerminal();
 
       logMessage(`\n=== MEMULAI UPLOAD KE CLOUDINARY ===`);
       logMessage(`[API REQUEST] Minta Tiket: GET ${apiUrl}/api/users/${userId}/pfp-signature`, "warn");
