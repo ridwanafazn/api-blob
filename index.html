@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulator PFP</title>
+  
+  <!-- Font Geist (Standard Font untuk Shadcn/Vercel) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Config (Meniru Shadcn UI) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Geist', 'sans-serif'], mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'] },
+          colors: {
+            border: "hsl(214.3 31.8% 91.4%)",
+            input: "hsl(214.3 31.8% 91.4%)",
+            ring: "hsl(221.2 83.2% 53.3%)",
+            background: "hsl(0 0% 100%)",
+            foreground: "hsl(222.2 84% 4.9%)",
+            primary: { DEFAULT: "hsl(221.2 83.2% 53.3%)", foreground: "hsl(210 40% 98%)" },
+            secondary: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            muted: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(215.4 16.3% 46.9%)" }
+          },
+          borderRadius: { lg: "0.5rem", md: "calc(0.5rem - 2px)", sm: "calc(0.5rem - 4px)" }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 text-foreground min-h-screen flex items-center justify-center p-4">
+
+  <!-- Main Container Card (Shadcn Card Style) -->
+  <div class="bg-background w-full max-w-2xl rounded-xl border border-border shadow-sm overflow-hidden flex flex-col md:flex-row">
+    
+    <!-- Sidebar: Profile Preview (Read) -->
+    <div class="bg-secondary p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-border md:w-1/3">
+      <div class="relative group">
+        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-md bg-white mb-4">
+          <!-- Gambar Profil Default -->
+          <img id="pfpImage" src="https://api.dicebear.com/7.x/bottts/svg?seed=asyifa" alt="Avatar" class="w-full h-full object-cover transition-opacity duration-300">
+        </div>
+      </div>
+      <h3 class="font-semibold text-lg text-center" id="displayUsername">User #1</h3>
+      <p class="text-xs text-muted-foreground text-center mt-1">Status: <span id="statusBadge" class="text-emerald-500 font-medium">Ready</span></p>
+    </div>
+
+    <!-- Main Content: Forms & Actions (Update) -->
+    <div class="p-6 md:p-8 flex-1">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold tracking-tight">Pengaturan API Lokal</h2>
+        <p class="text-sm text-muted-foreground">Hubungkan UI ini ke API Node.js di laptop kamu.</p>
+      </div>
+
+      <!-- Config Form -->
+      <div class="space-y-4 mb-8">
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Base URL API</label>
+          <input type="text" id="apiUrl" value="http://localhost:3000" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="http://192.168.1.5:3000">
+        </div>
+        
+        <div class="space-y-1.5">
+          <label class="text-sm font-medium leading-none">ID User Database (Neon)</label>
+          <input type="number" id="userId" value="1" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="relative mb-6">
+        <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-border"></span></div>
+        <div class="relative flex justify-center text-xs uppercase"><span class="bg-background px-2 text-muted-foreground">Opsi Perubahan Gambar</span></div>
+      </div>
+
+      <!-- Action Area -->
+      <div class="space-y-4">
+        <!-- Opsi 1: Upload Fisik -->
+        <div class="flex items-center gap-2">
+          <input type="file" id="fileInput" accept="image/*" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-secondary file:text-foreground file:font-medium file:px-2 file:py-1 file:rounded file:-ml-1 file:mr-3 hover:file:bg-gray-200 cursor-pointer">
+          <button onclick="startDirectUpload()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-32 shrink-0 shadow-sm">
+            Upload
+          </button>
+        </div>
+
+        <!-- Opsi 2: Generate Avatar -->
+        <button onclick="useRandomAvatar()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
+          🎲 Generate Avatar Acak
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal Log Area (Fixed at bottom on desktop, flows naturally on mobile) -->
+  <div class="fixed bottom-0 left-0 right-0 p-4 pointer-events-none z-50 flex justify-center">
+    <div id="terminalContainer" class="w-full max-w-2xl bg-[#0d1117] border border-gray-700 rounded-lg shadow-2xl overflow-hidden pointer-events-auto transition-transform duration-300 transform translate-y-[calc(100%-2.5rem)] hover:translate-y-0">
+      
+      <!-- Terminal Header -->
+      <div class="bg-[#161b22] px-4 py-2 border-b border-gray-700 flex justify-between items-center cursor-pointer" onclick="toggleTerminal()">
+        <div class="flex space-x-2">
+          <div class="w-3 h-3 rounded-full bg-red-500"></div>
+          <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+          <div class="w-3 h-3 rounded-full bg-green-500"></div>
+        </div>
+        <span class="text-xs text-gray-400 font-mono">Network Inspector (Klik untuk Buka/Tutup)</span>
+        <div class="w-4"></div>
+      </div>
+      
+      <!-- Terminal Body -->
+      <div id="logContent" class="p-4 h-48 overflow-y-auto font-mono text-xs text-green-400 whitespace-pre-wrap leading-relaxed">System ready. Waiting for API requests...</div>
+    </div>
+  </div>
+
+  <!-- Javascript Logic -->
+  <script>
+    // --- UI Helpers ---
+    function logMessage(msg, type="info") {
+      const logEl = document.getElementById('logContent');
+      const time = new Date().toLocaleTimeString();
+      let colorClass = "text-green-400";
+      if (type === "error") colorClass = "text-red-400";
+      if (type === "warn") colorClass = "text-yellow-400";
+      
+      logEl.innerHTML += `\n<span class="text-gray-500">[${time}]</span> <span class="${colorClass}">${msg}</span>`;
+      logEl.scrollTop = logEl.scrollHeight; // Auto scroll
+    }
+
+    function toggleTerminal() {
+      const terminal = document.getElementById('terminalContainer');
+      if (terminal.classList.contains('translate-y-[calc(100%-2.5rem)]')) {
+        terminal.classList.remove('translate-y-[calc(100%-2.5rem)]');
+      } else {
+        terminal.classList.add('translate-y-[calc(100%-2.5rem)]');
+      }
+    }
+
+    function getBaseApiUrl() {
+      return document.getElementById('apiUrl').value.replace(/\/$/, "");
+    }
+
+    function getUserId() {
+      return document.getElementById('userId').value;
+    }
+
+    function updateProfileUI(imageUrl, username = "User") {
+      document.getElementById('pfpImage').src = imageUrl;
+      document.getElementById('displayUsername').innerText = username;
+      document.getElementById('statusBadge').innerText = "Updated";
+      setTimeout(() => { document.getElementById('statusBadge').innerText = "Ready"; }, 2000);
+    }
+
+    // --- Main Logic: Update Database ---
+    async function updateDatabase(finalUrl) {
+      const apiUrl = getBaseApiUrl();
+      const userId = getUserId();
+      
+      logMessage(`\n[API REQUEST] PATCH ${apiUrl}/api/users/${userId}/pfp`, "warn");
+      
+      try {
+        const response = await fetch(`${apiUrl}/api/users/${userId}/pfp`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: finalUrl })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) throw new Error(result.message || 'Error dari Backend');
+        
+        logMessage(`[API RESPONSE] 200 OK - Database Updated!`);
+        logMessage(`[DB RECORD] ${JSON.stringify(result.data)}`);
+        
+        // Update UI Image dengan data dari database Neon (Read/Show)
+        updateProfileUI(result.data.pfp_url, result.data.username);
+        
+      } catch (err) {
+        logMessage(`[DB ERROR] ${err.message}`, "error");
+        alert("Gagal konek ke API Backend kamu. Cek terminal node.js mu!");
+      }
+    }
+
+    // --- Action 1: Gacha Avatar (Direct Update) ---
+    async function useRandomAvatar() {
+      if(!getBaseApiUrl() || !getUserId()) return alert("Isi API URL dan User ID!");
+      
+      // Buka terminal otomatis
+      document.getElementById('terminalContainer').classList.remove('translate-y-[calc(100%-2.5rem)]');
+
+      const seed = Math.random().toString(36).substring(7);
+      const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
+      
+      logMessage(`\n=== MEMULAI GACHA AVATAR ===`);
+      logMessage(`Mendapatkan URL Image Acak: ${avatarUrl}`);
+      
+      await updateDatabase(avatarUrl);
+    }
+
+    // --- Action 2: Upload Cloudinary (Presigned Flow) ---
+    async function startDirectUpload() {
+      const file = document.getElementById('fileInput').files[0];
+      const apiUrl = getBaseApiUrl();
+      const userId = getUserId();
+
+      if (!file) return alert("Pilih file gambar dulu cuy!");
+      if (!apiUrl || !userId) return alert("Isi API URL dan User ID!");
+
+      // Buka terminal otomatis
+      document.getElementById('terminalContainer').classList.remove('translate-y-[calc(100%-2.5rem)]');
+
+      logMessage(`\n=== MEMULAI UPLOAD KE CLOUDINARY ===`);
+      logMessage(`[API REQUEST] Minta Tiket: GET ${apiUrl}/api/users/${userId}/pfp-signature`, "warn");
+
+      let signatureData;
+      try {
+        const res = await fetch(`${apiUrl}/api/users/${userId}/pfp-signature`);
+        if (!res.ok) throw new Error("Gagal dapat signature. Cek API kamu!");
+        signatureData = await res.json();
+        logMessage(`[API RESPONSE] 200 OK - Dapat Tiket!`);
+        logMessage(`Signature Hash: ${signatureData.signature.substring(0,15)}...`);
+      } catch (err) {
+        return logMessage(`[ERROR] ${err.message}. Pastikan server jalan & CORS aktif!`, "error");
+      }
+
+      logMessage(`\n[CLOUDINARY REQUEST] POST (File: ${file.name}, Bypass Backend!)`, "warn");
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', signatureData.apiKey);
+      formData.append('timestamp', signatureData.timestamp);
+      formData.append('signature', signatureData.signature);
+      formData.append('folder', signatureData.folder);
+
+      try {
+        const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const cloudinaryResult = await cloudinaryRes.json();
+        if (!cloudinaryRes.ok) throw new Error(cloudinaryResult.error.message);
+        
+        const secureUrl = cloudinaryResult.secure_url;
+        logMessage(`[CLOUDINARY RESPONSE] 200 OK - Upload Berhasil!`);
+        logMessage(`URL Asset Baru: ${secureUrl}`);
+        
+        // Tahap Akhir: Simpan URL ke Database Backend Kamu
+        await updateDatabase(secureUrl);
+
+      } catch (err) {
+        logMessage(`[CLOUDINARY ERROR] ${err.message}`, "error");
+      }
+    }
+  </script>
+</body>
+</html>
