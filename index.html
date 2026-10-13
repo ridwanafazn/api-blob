@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulator PFP</title>
+  <title>Simulator PFP 3D</title>
   
-  <!-- Font Geist (Standard Font untuk Shadcn/Vercel) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   
-  <!-- Tailwind Config (Meniru Shadcn UI) -->
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Geist', 'sans-serif'], mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'] },
+          fontFamily: { 
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'], 
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'] 
+          },
           colors: {
             border: "hsl(214.3 31.8% 91.4%)",
             input: "hsl(214.3 31.8% 91.4%)",
@@ -37,136 +38,177 @@
 </head>
 <body class="bg-gray-50 text-foreground min-h-screen flex items-center justify-center p-4" style="zoom: 1.1;">
 
-  <!-- Main Container Card (Shadcn Card Style) -->
   <div class="bg-background w-full max-w-2xl rounded-xl border border-border shadow-sm overflow-hidden flex flex-col md:flex-row">
     
-    <!-- Sidebar: Profile Preview (Read) -->
     <div class="bg-secondary p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-border md:w-1/3">
       <div class="relative group">
-        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-background shadow-md bg-white mb-4">
-          <!-- Gambar Profil Default -->
-          <img id="pfpImage" src="https://api.dicebear.com/7.x/bottts/svg?seed=asyifa" alt="Avatar" class="w-full h-full object-cover transition-opacity duration-300">
-        </div>
+        <div id="three-container" class="w-40 h-40 mx-auto rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-white to-gray-100 mb-4 flex items-center justify-center border border-white"></div>
       </div>
-      <h3 class="font-semibold text-lg text-center" id="displayUsername">User #1</h3>
-      <p class="text-xs text-muted-foreground text-center mt-1">Status: <span id="statusBadge" class="text-emerald-500 font-medium">Ready</span></p>
+      <h3 class="font-bold text-lg text-center" id="displayUsername">User 1</h3>
+      <p class="text-xs text-muted-foreground text-center mt-1">Status <span id="statusBadge" class="text-emerald-500 font-semibold">Ready</span></p>
     </div>
 
-    <!-- Main Content: Forms & Actions (Update) -->
     <div class="p-6 md:p-8 flex-1">
       
-      <!-- Shared Area: Base URL API -->
       <div class="space-y-1.5 mb-6">
-        <label class="text-sm font-medium leading-none">Base URL API</label>
+        <label class="text-sm font-semibold leading-none">Base URL API</label>
         <input type="text" id="apiUrl" value="http://localhost:3000" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="http://192.168.1.5:3000">
       </div>
 
-      <!-- Tab Navigation -->
       <div class="flex border-b border-border mb-6 space-x-4">
-        <button id="btnTabPfp" onclick="switchTab('pfp')" class="pb-2 text-sm font-semibold border-b-2 border-primary text-foreground">Simulator PFP</button>
-        <button id="btnTabAdd" onclick="switchTab('add')" class="pb-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground">Tambah User</button>
+        <button id="btnTabPfp" onclick="switchTab('pfp')" class="pb-2 text-sm font-bold border-b-2 border-primary text-foreground">Simulator PFP</button>
+        <button id="btnTabAdd" onclick="switchTab('add')" class="pb-2 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground">Tambah User</button>
       </div>
 
-      <!-- Tab Content: Simulator PFP -->
       <div id="tabPfp" class="block">
         <div class="mb-6">
-          <h2 class="text-xl font-bold tracking-tight">Pengaturan User</h2>
-          <p class="text-sm text-muted-foreground">Pilih user ID untuk melihat atau mengubah profile picture.</p>
+          <h2 class="text-xl font-extrabold tracking-tight">Pengaturan User</h2>
+          <p class="text-sm text-muted-foreground font-medium">Pilih user ID untuk melihat atau mengubah profile picture.</p>
         </div>
 
-        <!-- Config Form (User ID only now) -->
         <div class="space-y-4 mb-8">
           <div class="space-y-1.5">
-            <label class="text-sm font-medium leading-none">ID User Database</label>
+            <label class="text-sm font-semibold leading-none">ID User Database</label>
             <input type="number" id="userId" value="1" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
           </div>
         </div>
 
-      <!-- Divider -->
       <div class="relative mb-6">
         <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-border"></span></div>
-        <div class="relative flex justify-center text-xs uppercase"><span class="bg-background px-2 text-muted-foreground">Opsi Perubahan Gambar</span></div>
+        <div class="relative flex justify-center text-xs uppercase font-bold"><span class="bg-background px-2 text-muted-foreground">Opsi Perubahan Gambar</span></div>
       </div>
 
-      <!-- Action Area -->
       <div class="space-y-4">
-        <!-- Opsi 1: Upload Fisik -->
         <div class="flex items-center gap-2">
-          <input type="file" id="fileInput" accept="image/*" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-secondary file:text-foreground file:font-medium file:px-2 file:py-1 file:rounded file:-ml-1 file:mr-3 hover:file:bg-gray-200 cursor-pointer">
-          <button onclick="startDirectUpload()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-32 shrink-0 shadow-sm">
+          <input type="file" id="fileInput" accept="image/*" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-secondary file:text-foreground file:font-semibold file:px-2 file:py-1 file:rounded file:-ml-1 file:mr-3 hover:file:bg-gray-200 cursor-pointer">
+          <button onclick="startDirectUpload()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-32 shrink-0 shadow-sm">
             Upload
           </button>
         </div>
 
-        <!-- Opsi 2: Generate Avatar -->
-        <button onclick="useRandomAvatar()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
+        <button onclick="useRandomAvatar()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
           Generate Avatar Acak
         </button>
 
-        <!-- Opsi 3: Load PFP dari Database -->
-        <button onclick="loadPfpFromDb()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
+        <button onclick="loadPfpFromDb()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full shadow-sm">
           Load Data by ID User
         </button>
       </div>
-      </div> <!-- End of tabPfp -->
+      </div>
 
-      <!-- Tab Content: Tambah User -->
       <div id="tabAddUser" class="hidden">
         <div class="mb-6">
-          <h2 class="text-xl font-bold tracking-tight">Tambah User Baru</h2>
-          <p class="text-sm text-muted-foreground">Buat data user baru ke dalam database Neon.</p>
+          <h2 class="text-xl font-extrabold tracking-tight">Tambah User Baru</h2>
+          <p class="text-sm text-muted-foreground font-medium">Buat data user baru ke dalam database Neon.</p>
         </div>
 
         <div class="space-y-4">
           <div class="space-y-1.5">
-            <label class="text-sm font-medium leading-none">Username</label>
-            <input type="text" id="newUsername" placeholder="contoh: ridwan" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <label class="text-sm font-semibold leading-none">Username</label>
+            <input type="text" id="newUsername" placeholder="ridwan" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
           </div>
           
-          <button onclick="createNewUser()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full shadow-sm">
-            ➕ Tambah User
+          <button onclick="createNewUser()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full shadow-sm">
+            Tambah User
           </button>
         </div>
 
-        <!-- Response Panel (Hidden by default) -->
         <div id="createUserResult" class="hidden mt-6 p-4 bg-secondary rounded-lg border border-border">
-          <p class="text-sm font-semibold text-emerald-600 mb-2">✅ User berhasil dibuat!</p>
+          <p class="text-sm font-bold text-emerald-600 mb-2">User berhasil dibuat</p>
           <div class="space-y-1 mb-4">
-            <p class="font-mono text-sm">ID: <span id="resUserId" class="font-bold"></span></p>
-            <p class="font-mono text-sm">Username: <span id="resUserName" class="font-bold"></span></p>
+            <p class="font-mono text-sm">ID <span id="resUserId" class="font-bold"></span></p>
+            <p class="font-mono text-sm">Username <span id="resUserName" class="font-bold"></span></p>
           </div>
-          <button onclick="useNewUserId()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full shadow-sm">
+          <button onclick="useNewUserId()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full shadow-sm">
             Gunakan ID ini di Simulator PFP
           </button>
         </div>
-      </div> <!-- End of tabAddUser -->
+      </div>
 
     </div>
   </div>
 
-  <!-- Terminal Log Area (Fixed at bottom on desktop, flows naturally on mobile) -->
   <div class="fixed bottom-0 left-0 right-0 p-4 pointer-events-none z-50 flex justify-center">
     <div id="terminalContainer" class="w-full max-w-2xl bg-[#0d1117] border border-gray-700 rounded-lg shadow-2xl overflow-hidden pointer-events-auto transition-transform duration-300 transform translate-y-[calc(100%-2.5rem)]">
       
-      <!-- Terminal Header -->
       <div class="bg-[#161b22] px-4 py-2 border-b border-gray-700 flex justify-between items-center cursor-pointer" onclick="toggleTerminal()">
         <div class="flex space-x-2">
           <div class="w-3 h-3 rounded-full bg-red-500"></div>
           <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
           <div class="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
-        <span class="text-xs text-gray-400 font-mono">Network Inspector</span>
+        <span class="text-xs text-gray-400 font-mono font-semibold">Network Inspector</span>
         <svg id="terminalChevron" class="w-4 h-4 text-gray-400 transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
       </div>
       
-      <!-- Terminal Body -->
-      <div id="logContent" class="p-4 h-48 overflow-y-auto font-mono text-xs text-green-400 whitespace-pre-wrap leading-relaxed">System ready. Waiting for API requests...</div>
+      <div id="logContent" class="p-4 h-48 overflow-y-auto font-mono text-xs text-green-400 whitespace-pre-wrap leading-relaxed">System ready Waiting for API requests</div>
     </div>
   </div>
 
-  <!-- Javascript Logic -->
   <script>
-    // --- UI Helpers ---
+    let scene, camera, renderer, mesh, textureLoader;
+
+    function initThreeJS() {
+      const container = document.getElementById('three-container');
+      scene = new THREE.Scene();
+      
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.z = 4;
+
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      directionalLight.position.set(2, 5, 5);
+      scene.add(directionalLight);
+
+      textureLoader = new THREE.TextureLoader();
+      textureLoader.setCrossOrigin('anonymous');
+
+      const geometry = new THREE.BoxGeometry(2, 2, 2);
+      
+      textureLoader.load('https://api.dicebear.com/7.x/bottts/png?seed=asyifa', function(texture) {
+        const material = new THREE.MeshStandardMaterial({ 
+          map: texture,
+          roughness: 0.3,
+          metalness: 0.1
+        });
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if(mesh) {
+          mesh.rotation.y += 0.006;
+          mesh.rotation.x += 0.003;
+        }
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    window.onload = () => {
+      initThreeJS();
+    };
+
+    function updateThreeTexture(url) {
+      if(!mesh) return;
+      let safeUrl = url;
+      if(safeUrl.includes('dicebear.com') && safeUrl.includes('.svg')) {
+        safeUrl = safeUrl.replace('.svg', '.png');
+      }
+      textureLoader.load(safeUrl, function(texture) {
+        mesh.material.map = texture;
+        mesh.material.needsUpdate = true;
+      });
+    }
+
     function switchTab(tab) {
       const tabPfp = document.getElementById('tabPfp');
       const tabAdd = document.getElementById('tabAddUser');
@@ -179,16 +221,16 @@
         tabAdd.classList.remove('block');
         tabAdd.classList.add('hidden');
         
-        btnPfp.className = "pb-2 text-sm font-semibold border-b-2 border-primary text-foreground";
-        btnAdd.className = "pb-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground";
+        btnPfp.className = "pb-2 text-sm font-bold border-b-2 border-primary text-foreground";
+        btnAdd.className = "pb-2 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground";
       } else {
         tabAdd.classList.remove('hidden');
         tabAdd.classList.add('block');
         tabPfp.classList.remove('block');
         tabPfp.classList.add('hidden');
         
-        btnAdd.className = "pb-2 text-sm font-semibold border-b-2 border-primary text-foreground";
-        btnPfp.className = "pb-2 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground";
+        btnAdd.className = "pb-2 text-sm font-bold border-b-2 border-primary text-foreground";
+        btnPfp.className = "pb-2 text-sm font-semibold border-b-2 border-transparent text-muted-foreground hover:text-foreground";
       }
     }
 
@@ -199,8 +241,8 @@
       if (type === "error") colorClass = "text-red-400";
       if (type === "warn") colorClass = "text-yellow-400";
       
-      logEl.innerHTML += `\n<span class="text-gray-500">[${time}]</span> <span class="${colorClass}">${msg}</span>`;
-      logEl.scrollTop = logEl.scrollHeight; // Auto scroll
+      logEl.innerHTML += `\n<span class="text-gray-500">${time}</span> <span class="${colorClass}">${msg}</span>`;
+      logEl.scrollTop = logEl.scrollHeight;
     }
 
     function toggleTerminal() {
@@ -232,53 +274,53 @@
     }
 
     function updateProfileUI(imageUrl, username = "User") {
-      document.getElementById('pfpImage').src = imageUrl;
+      updateThreeTexture(imageUrl);
       document.getElementById('displayUsername').innerText = username;
       document.getElementById('statusBadge').innerText = "Updated";
       setTimeout(() => { document.getElementById('statusBadge').innerText = "Ready"; }, 2000);
     }
 
-    // --- Main Logic: Update Database ---
-    async function updateDatabase(finalUrl) {
+    async function updateDatabase(finalUrl, publicId = null) {
       const apiUrl = getBaseApiUrl();
       const userId = getUserId();
       
-      logMessage(`\n[API REQUEST] PATCH ${apiUrl}/api/users/${userId}/pfp`, "warn");
+      logMessage(`\nAPI REQUEST PATCH ${apiUrl} api users ${userId} pfp`, "warn");
       
       try {
+        const payload = { imageUrl: finalUrl };
+        if (publicId) payload.publicId = publicId;
+
         const response = await fetch(`${apiUrl}/api/users/${userId}/pfp`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: finalUrl })
+          body: JSON.stringify(payload)
         });
         
         const result = await response.json();
         
         if (!response.ok) throw new Error(result.message || 'Error dari Backend');
         
-        logMessage(`[API RESPONSE] 200 OK - Database Updated!`);
-        logMessage(`[DB RECORD] ${JSON.stringify(result.data)}`);
+        logMessage(`API RESPONSE 200 OK Database Updated`);
+        logMessage(`DB RECORD ${JSON.stringify(result.data)}`);
         
-        // Update UI Image dengan data dari database Neon (Read/Show)
         updateProfileUI(result.data.pfp_url, result.data.username);
         
       } catch (err) {
-        logMessage(`[DB ERROR] ${err.message}`, "error");
-        alert("Gagal konek ke API Backend kamu. Cek terminal node.js mu!");
+        logMessage(`DB ERROR ${err.message}`, "error");
+        alert("Gagal konek ke API Backend");
       }
     }
 
-    // --- Action: Buat User Baru ---
     async function createNewUser() {
       const apiUrl = getBaseApiUrl();
       const username = document.getElementById('newUsername').value.trim();
       
-      if (!apiUrl) return alert("Set Base URL API dulu!");
-      if (!username) return alert("Masukkan username!");
+      if (!apiUrl) return alert("Set Base URL API dulu");
+      if (!username) return alert("Masukkan username");
       
       openTerminal();
-      logMessage(`\n=== MEMBUAT USER BARU ===`);
-      logMessage(`[API REQUEST] POST ${apiUrl}/api/users`, "warn");
+      logMessage(`\nMEMBUAT USER BARU`);
+      logMessage(`API REQUEST POST ${apiUrl} api users`, "warn");
       
       try {
         const response = await fetch(`${apiUrl}/api/users`, {
@@ -290,10 +332,9 @@
         
         if (!response.ok) throw new Error(result.message || 'Error dari Backend');
         
-        logMessage(`[API RESPONSE] 201 Created - User Berhasil Dibuat!`);
-        logMessage(`[DB RECORD] ${JSON.stringify(result.data || result)}`);
+        logMessage(`API RESPONSE 201 Created User Berhasil Dibuat`);
+        logMessage(`DB RECORD ${JSON.stringify(result.data || result)}`);
         
-        // Show result panel
         const userData = result.data || result;
         const newId = userData.id;
         const newName = userData.username;
@@ -302,12 +343,11 @@
         document.getElementById('resUserName').innerText = newName;
         document.getElementById('createUserResult').classList.remove('hidden');
         
-        // Save the ID in a data attribute on the button for easy access
         document.getElementById('createUserResult').dataset.newId = newId;
         
       } catch (err) {
-        logMessage(`[ERROR] ${err.message}`, "error");
-        alert("Gagal membuat user. Cek API Backend kamu!");
+        logMessage(`ERROR ${err.message}`, "error");
+        alert("Gagal membuat user");
       }
     }
 
@@ -316,24 +356,21 @@
       if (newId) {
         document.getElementById('userId').value = newId;
         switchTab('pfp');
-        // Clear result
         document.getElementById('createUserResult').classList.add('hidden');
         document.getElementById('newUsername').value = "";
       }
     }
 
-    // --- Action 0: Load PFP dari Database ---
     async function loadPfpFromDb() {
       const apiUrl = getBaseApiUrl();
       const userId = getUserId();
 
-      if (!apiUrl || !userId) return alert("Isi API URL dan User ID!");
+      if (!apiUrl || !userId) return alert("Isi API URL dan User ID");
 
-      // Buka terminal otomatis
       openTerminal();
 
-      logMessage(`\n=== MEMUAT PFP DARI DATABASE ===`);
-      logMessage(`[API REQUEST] GET ${apiUrl}/api/users/${userId}/pfp`, "warn");
+      logMessage(`\nMEMUAT PFP DARI DATABASE`);
+      logMessage(`API REQUEST GET ${apiUrl} api users ${userId} pfp`, "warn");
 
       try {
         const response = await fetch(`${apiUrl}/api/users/${userId}/pfp`);
@@ -341,70 +378,65 @@
 
         if (!response.ok) throw new Error(result.message || 'Error dari Backend');
 
-        logMessage(`[API RESPONSE] 200 OK - Data PFP Ditemukan!`);
-        logMessage(`[DB RECORD] ${JSON.stringify(result.data)}`);
+        logMessage(`API RESPONSE 200 OK Data PFP Ditemukan`);
+        logMessage(`DB RECORD ${JSON.stringify(result.data)}`);
 
-        // Update UI dengan data dari database
         const pfpUrl = result.data.pfp_url;
         const username = result.data.username;
 
         if (pfpUrl) {
           updateProfileUI(pfpUrl, username || "User");
-          logMessage(`PFP berhasil dimuat dari database.`);
+          logMessage(`PFP berhasil dimuat dari database`);
         } else {
-          logMessage(`User ditemukan tapi belum punya PFP.`, "warn");
-          updateProfileUI("https://api.dicebear.com/7.x/bottts/svg?seed=default", username || "User");
+          logMessage(`User ditemukan tapi belum punya PFP`, "warn");
+          updateProfileUI("https://api.dicebear.com/7.x/bottts/png?seed=default", username || "User");
         }
 
       } catch (err) {
-        logMessage(`[ERROR] ${err.message}`, "error");
-        alert("Gagal memuat PFP. Cek API Backend kamu!");
+        logMessage(`ERROR ${err.message}`, "error");
+        alert("Gagal memuat PFP");
       }
     }
 
-    // --- Action 1: Gacha Avatar (Direct Update) ---
     async function useRandomAvatar() {
-      if(!getBaseApiUrl() || !getUserId()) return alert("Isi API URL dan User ID!");
+      if(!getBaseApiUrl() || !getUserId()) return alert("Isi API URL dan User ID");
       
-      // Buka terminal otomatis
       openTerminal();
 
       const seed = Math.random().toString(36).substring(7);
-      const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
+      const avatarUrl = `https://api.dicebear.com/7.x/bottts/png?seed=${seed}`;
       
-      logMessage(`\n=== MEMULAI GACHA AVATAR ===`);
-      logMessage(`Mendapatkan URL Image Acak: ${avatarUrl}`);
+      logMessage(`\nMEMULAI GACHA AVATAR`);
+      logMessage(`Mendapatkan URL Image Acak ${avatarUrl}`);
       
       await updateDatabase(avatarUrl);
     }
 
-    // --- Action 2: Upload Cloudinary (Presigned Flow) ---
     async function startDirectUpload() {
       const file = document.getElementById('fileInput').files[0];
       const apiUrl = getBaseApiUrl();
       const userId = getUserId();
 
-      if (!file) return alert("Pilih file gambar dulu cuy!");
-      if (!apiUrl || !userId) return alert("Isi API URL dan User ID!");
+      if (!file) return alert("Pilih file gambar dulu");
+      if (!apiUrl || !userId) return alert("Isi API URL dan User ID");
 
-      // Buka terminal otomatis
       openTerminal();
 
-      logMessage(`\n=== MEMULAI UPLOAD KE CLOUDINARY ===`);
-      logMessage(`[API REQUEST] Minta Tiket: GET ${apiUrl}/api/users/${userId}/pfp-signature`, "warn");
+      logMessage(`\nMEMULAI UPLOAD KE CLOUDINARY`);
+      logMessage(`API REQUEST Minta Tiket GET ${apiUrl} api users ${userId} pfp signature`, "warn");
 
       let signatureData;
       try {
         const res = await fetch(`${apiUrl}/api/users/${userId}/pfp-signature`);
-        if (!res.ok) throw new Error("Gagal dapat signature. Cek API kamu!");
+        if (!res.ok) throw new Error("Gagal dapat signature");
         signatureData = await res.json();
-        logMessage(`[API RESPONSE] 200 OK - Dapat Tiket!`);
-        logMessage(`Signature Hash: ${signatureData.signature.substring(0,15)}...`);
+        logMessage(`API RESPONSE 200 OK Dapat Tiket`);
+        logMessage(`Signature Hash ${signatureData.signature.substring(0,15)}`);
       } catch (err) {
-        return logMessage(`[ERROR] ${err.message}. Pastikan server jalan & CORS aktif!`, "error");
+        return logMessage(`ERROR ${err.message}`, "error");
       }
 
-      logMessage(`\n[CLOUDINARY REQUEST] POST (File: ${file.name}, Bypass Backend!)`, "warn");
+      logMessage(`\nCLOUDINARY REQUEST POST File ${file.name}`, "warn");
 
       const formData = new FormData();
       formData.append('file', file);
@@ -423,14 +455,15 @@
         if (!cloudinaryRes.ok) throw new Error(cloudinaryResult.error.message);
         
         const secureUrl = cloudinaryResult.secure_url;
-        logMessage(`[CLOUDINARY RESPONSE] 200 OK - Upload Berhasil!`);
-        logMessage(`URL Asset Baru: ${secureUrl}`);
+        const publicId = cloudinaryResult.public_id;
         
-        // Tahap Akhir: Simpan URL ke Database Backend Kamu
-        await updateDatabase(secureUrl);
+        logMessage(`CLOUDINARY RESPONSE 200 OK Upload Berhasil`);
+        logMessage(`URL Asset Baru ${secureUrl}`);
+        
+        await updateDatabase(secureUrl, publicId);
 
       } catch (err) {
-        logMessage(`[CLOUDINARY ERROR] ${err.message}`, "error");
+        logMessage(`CLOUDINARY ERROR ${err.message}`, "error");
       }
     }
   </script>
